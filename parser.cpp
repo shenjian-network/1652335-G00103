@@ -1,4 +1,6 @@
 #include "parser.h"
+void Die(char *mess);
+void tip();
 void Die(char *mess)
 {
 	perror(mess);
@@ -22,7 +24,7 @@ void tip(bool isServer)
         printf("\tÊ¾Àı: ./test --ip 192.168.6.1 --port 8080 --block --fork\n");
     exit(1);
 }
-bool getOptType(int argc,char** argv,struct optType** myOptTypeAddr,bool isServer)
+void getOptType(int argc,char** argv,struct optType** myOptTypeAddr,bool isServer)
 {
     struct optType* myOptType;
     int opt;
@@ -111,5 +113,5 @@ bool getOptType(int argc,char** argv,struct optType** myOptTypeAddr,bool isServe
         myOptType->isBlock=0;
     if(myOptType->isFork==-1)
         myOptType->isFork=0;
-    return 1;
+    return ;
 }
