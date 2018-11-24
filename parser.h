@@ -1,3 +1,5 @@
+#ifndef PARSE_1652335
+#define PARSE_1652335
 #include <unistd.h>
 #include <getopt.h>
 #include <stdio.h>
@@ -16,5 +18,6 @@ struct optType{
 };
 //失败则exit(1) argc:参数个数 argv：参数 optType：待填充的类型（如&myOptType） isServer（是否为server） not Server:isClient 
 void getOptType(int argc,char** argv,struct optType** myOptTypeAddr,bool isServer);
+#endif
 
 
