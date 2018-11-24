@@ -18,6 +18,9 @@ struct optType{
 };
 //失败则exit(1) argc:参数个数 argv：参数 optType：待填充的类型（如&myOptType） isServer（是否为server） not Server:isClient 
 void getOptType(int argc,char** argv,struct optType** myOptTypeAddr,bool isServer);
+<<<<<<< HEAD
 #endif
 
 
+=======
+>>>>>>> 24211e644b1aa900206d9f36cfdec349827077b6
