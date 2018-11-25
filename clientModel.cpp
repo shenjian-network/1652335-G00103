@@ -72,7 +72,7 @@ int ClientModel::sendC(int size,const char *buffer) //必须发送完足够的字节之后才
 int ClientModel::recvC(char *buffer) //非阻塞接受的情况下，考虑未收完，收到内容超过要求值的情况 阻塞情况也要考虑未收完的情况，和收过多的情况 同时考虑对端断开的情况 每次接受更新时间戳
 {
     int befSize=requiredSize;
-    while (requiredSize > 0) //剩余部分大于0
+    while (requiredSize >= 0) //剩余部分大于0
     {
         int RecvSize;
         if (isBlock)
