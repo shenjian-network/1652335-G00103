@@ -8,4 +8,3 @@ $(Target):%:%.cpp $(HEADFILE) $(INCLUDEFILE)
 	$(CC) -o $@ $< $(HEADFILE) $(INCLUDEFILE)
 clean:
 	-rm -rf $(Target) *.txt
-

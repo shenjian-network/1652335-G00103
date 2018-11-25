@@ -9,6 +9,25 @@ const int readLenArr[] = {5, 3, 5, 9, 3};
 const int readCmpLen[] = {5, 3, 5, 3, 3};
 const char * readCmpContent[] = {"StuNo", "pid", "TIME", "str", "end"};
 
+int sendS(int mySocket, int size,const char *buffer) //必须发送完足够的字节之后才会返回，除非对端挂掉或者网络异常
+{
+    while (size > 0)
+    { 
+        int SendSize=send(mySocket, buffer, size, 0);
+        if (SendSize < 0)
+        {
+            if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN))
+                continue;
+            else
+                return -1;
+        }
+        size = size - SendSize; //用于循环发送且退出功能
+        buffer += SendSize;     //用于计算已发buffer的偏移量
+    }
+    return 0;
+}
+
+
 int myRead(int cfd, char* & bufferRead, int depth)
 {
         static int recbytes;
@@ -94,8 +113,12 @@ int myWrite(int cfd, char* & bufferWrite, int depth, bool isFork, ofstream & fou
 			write_content = bufferWrite;
 			writeLen = atoi(bufferRead + 3);
 			break;
+		case 4:
+			close(cfd);
+			cout << "收到end" << endl;
+			return 0;
 		default:
-			//cerr << "Switch error" << endl;
+			cerr << "How do you enter this?" << endl;
 			break;
 	}
 	
@@ -118,15 +141,16 @@ void createFile(ofstream & fout)
 	fout.open(fileName.c_str(), ios::out | ios::trunc);
 }
 
-void bindAndConnect(int & cfd, sockaddr_in & s_add, unsigned short & portnum,  optType * & myOptType)
+
+bool bindAndConnect(int & cfd, sockaddr_in & s_add, unsigned short & portnum,  optType * & myOptType)
 {
 	//nonblock
 	cfd = socket(AF_INET, SOCK_STREAM, 0);
         if(-1 == cfd)
         {
             printf("socket fail ! \r\n");
-            exit(EXIT_FAILURE);
-        }
+            return false;
+	}
 
         bzero(&s_add,sizeof(struct sockaddr_in));
         s_add.sin_family=AF_INET;
@@ -137,10 +161,12 @@ void bindAndConnect(int & cfd, sockaddr_in & s_add, unsigned short & portnum,  o
         if(-1 == connect(cfd,(struct sockaddr *)(&s_add), sizeof(struct sockaddr)))
         {
             printf("connect fail !\r\n");
-            exit(EXIT_FAILURE);
-        }
+            return false;
+	}
         printf("connect ok !\r\n");	
+	return true;
 }
+
 
 void clientFork(const int & isFork, const int & linkNum)
 {
@@ -161,7 +187,7 @@ void clientFork(const int & isFork, const int & linkNum)
 }
 
 
-void interact(int cfd, char * bufferRead, char * bufferWrite, bool isFork, ofstream& fout)
+bool interact(int cfd, char * bufferRead, char * bufferWrite, bool isFork, ofstream& fout)
 {
 	/*
  		Interact between Server and Client depLim times
@@ -171,9 +197,16 @@ void interact(int cfd, char * bufferRead, char * bufferWrite, bool isFork, ofstr
 	{
 		if(myRead(cfd, bufferRead, i))
 			myWrite(cfd, bufferWrite, i, isFork, fout, bufferRead);
-		else
-			break;	
+		else{
+			char pidChar[50];
+			sprintf(pidChar, "%d", getpid());
+			string fileName = string("1652335.") + string(pidChar) + string(".pid.txt");
+			remove(fileName.c_str());
+			return false;
+		}	
 	}
+
+	return true;
 }
 
 int main(int argc, char* argv[])
@@ -192,18 +225,23 @@ int main(int argc, char* argv[])
 	struct sockaddr_in s_add;
 	unsigned short portnum = myOptType->port;  //port number
 	
-	bindAndConnect(cfd, s_add, portnum, myOptType);
+	while(1){
+		while(!bindAndConnect(cfd, s_add, portnum, myOptType))				continue; 
+		
+		char* bufferRead = new char[readMaxn];
+		char* bufferWrite = new char[writeMaxn];
+		srand(time(NULL));
 	
-	char* bufferRead = new char[readMaxn];
-        char* bufferWrite = new char[writeMaxn];
-	srand(time(NULL));
-	
-       	interact(cfd, bufferRead, bufferWrite, myOptType->isFork, fout); 
+		if(!interact(cfd, bufferRead, bufferWrite, myOptType->isFork, fout)) 
+			continue;
 
-        delete[] bufferRead;
-        delete[] bufferWrite;
+       		delete[] bufferRead;
+       		delete[] bufferWrite;
 
-	fout.close();
-	close(cfd);
+		fout.close();
+		close(cfd);
+
+		break;
+	}
 	return 0;
 }
