@@ -1,7 +1,6 @@
 #ifndef CLIENTMODEL_1652335
 #define CLIENTMODEL_1652335
-#include "parser.h"
-#include "init_demo.h"
+
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -14,9 +13,14 @@
 #include <iostream>
 #include <string>
 #include <ctime>
+
+#include "utils.h"
+
 using namespace std;
 #define recvBufferSize 100000
 #define recvTle 5
+
+
 /*Server端对应的Client的收发状态表*/
 enum ClientStatus{
     sendStnoSta,

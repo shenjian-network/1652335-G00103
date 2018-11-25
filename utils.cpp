@@ -1,11 +1,39 @@
-#include "parser.h"
-void Die(char *mess);
-void tip();
-void Die(char *mess)
+#include "utils.h"
+
+
+// 异常退出
+void Die(const char*msg)
 {
-    perror(mess);
+    perror(msg);
     exit(1);
 }
+
+
+// 创建守护进程
+void init_deamon(void)
+{
+    int pid;
+    int i;
+    if(signal(SIGCHLD,SIG_IGN) == SIG_ERR){
+        Die("Cant signal in init_daemon.");
+    }
+    if(pid=fork())
+        exit(0);
+    else if(pid< 0){
+        Die("fail to fork1");
+    }
+    setsid();
+    if(pid=fork())
+        exit(0);
+    else if(pid< 0)
+        exit(1);
+    chdir("./");
+    umask(0);
+    return;
+}
+
+
+// give tips
 void tip(bool isServer)
 {
     printf("usage:\n");
@@ -24,6 +52,8 @@ void tip(bool isServer)
         printf("\t示例: ./test --ip 192.168.6.1 --port 8080 --block --fork\n");
     exit(1);
 }
+
+// parser
 void getOptType(int argc, char **argv, struct optType **myOptTypeAddr, bool isServer)
 {
     struct optType *myOptType;

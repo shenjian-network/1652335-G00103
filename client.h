@@ -1,5 +1,5 @@
-#ifndef SERVER_H
-#define SERVER_H
+#ifndef CLIENT_1652335
+#define CLIENT_1652335
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -13,7 +13,4 @@
 
 #include "utils.h"
 
-#define MAXPENDING 1023    /* Max connection requests */
-#define MAXCLIENT 1023
-
-#endif // SERVER_H
+#endif // CLIENT_1652235

@@ -1,8 +1,8 @@
 CC=g++
 Target = server
 .PHONY: all clean 
-HEADFILE= parser.h server.h init_demo.h clientModel.h 
-INCLUDEFILE=parser.cpp  init_demo.cpp clientModel.cpp
+HEADFILE= utils.h server.h  clientModel.h 
+INCLUDEFILE= utils.cpp clientModel.cpp
 all:$(Target) 
 $(Target):%:%.cpp $(HEADFILE) $(INCLUDEFILE)
 	$(CC) -o $@ $< $(HEADFILE) $(INCLUDEFILE)

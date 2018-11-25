@@ -1,36 +1,9 @@
-#include <bits/stdc++.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <errno.h>
-#include <time.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include "parser.h"
+#include "client.h"
+
 using namespace std;
 const int writeMaxn = 100000;
 const int readMaxn = 50;
 const bool isServer = false;
-void createDaemon()
-{
-	umask(0);
-	int i;
-	int fd0;
-	pid_t pid, pid1;
-	if((pid = fork()) < 0)
-		perror("Fork Error");
-	else if(pid)
-		exit(0);
-	setsid();
-	signal(SIGCHLD, SIG_IGN);	
-	
-	if((pid1 = fork()) < 0)
-		perror("Fork Error!");
-	else if(pid1)
-		exit(0);
-}
 
 const int readLenArr[] = {5, 3, 5, 9, 3};
 const int readCmpLen[] = {5, 3, 5, 3, 3};
@@ -187,7 +160,7 @@ void interact(int cfd, char * bufferRead, char * bufferWrite, bool isFork, ofstr
 
 int main(int argc, char* argv[])
 {
-	createDaemon();
+	init_deamon();
 	
 	optType *myOptType;
 	getOptType(argc, argv, &myOptType, isServer);

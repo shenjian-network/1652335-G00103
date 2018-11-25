@@ -1,12 +1,6 @@
 #include "server.h"
 #include "clientModel.h"
 
-/*错误处理*/
-void Die(const char *mess)
-{
-	perror(mess);
-	exit(1);
-}
 
 /*函数：设置sock为non-blocking mode*/
 void setSockNonBlock(int sock)
