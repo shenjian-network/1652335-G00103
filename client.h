@@ -10,7 +10,8 @@
 #include <sys/time.h>
 #include <time.h>
 #include <signal.h>
-
+#include <iostream>
+#include <fstream>
 #include "utils.h"
 
 #endif // CLIENT_1652235

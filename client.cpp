@@ -30,10 +30,11 @@ int myRead(int cfd, char* & bufferRead, int depth)
 		return 0;
 	if(depth == 3)
 	{
-		for(int i = 4; i < 8; ++i)
+		for(int i = 3; i < 8; ++i)
 			if(!isdigit(bufferRead[i]))
 				return 0;
-		int tmp = atoi(bufferRead);
+		int tmp = atoi(bufferRead+3);
+		cout << "Ëæ»úÊý:" << tmp << endl;
 		if(tmp < 32768 || tmp > 99999)
 			return 0;
 	}			
@@ -62,32 +63,49 @@ int myWrite(int cfd, char* & bufferWrite, int depth, bool isFork, ofstream & fou
         static long long writeTmp = 0;
         static long long writeCnt = 0;
 	int writeLen = writeLenArr[depth];
+	static int Stu = 1652335;
+	int tmp;
+	static int pid;
+	char* write_content;
 	memset(bufferWrite, 0, sizeof(bufferWrite));
 	switch(depth)
 	{
 		case 0:
-			sprintf(bufferWrite, "%d", htonl(1652335));
+			fout << Stu << "\n";
+			tmp = htonl(Stu);
+			write_content = (char*)&tmp;
+			writeLen = sizeof(Stu);
 			break;
 		case 1:
-			sprintf(bufferWrite, "%d", htonl(isFork ? getpid() : ((getpid() << 16) + cfd))); 
+			pid = int(isFork ? getpid() : ((getpid() << 16) + cfd));
+			fout << pid << "\n"; 
+			pid = htonl(pid);
+			write_content = (char*)&pid;
+			writeLen = sizeof(pid);
 			break;
 		case 2:
 			getTime(bufferWrite);
+			write_content = bufferWrite;
+			fout << bufferWrite << "\n";
 			break;
 		case 3:
-			generateRandomString(bufferWrite, atoi(bufferRead));
+			generateRandomString(bufferWrite, atoi(bufferRead+3));
+			fout.write(bufferWrite, atoi(bufferRead+3));
+			write_content = bufferWrite;
+			writeLen = atoi(bufferRead + 3);
 			break;
 		default:
-			cerr << "Switch error" << endl;
+			//cerr << "Switch error" << endl;
 			break;
 	}
+	
 		
-        if(-1 == (writebytes = write(cfd,bufferWrite,writeLen)))
+        if(-1 == (writebytes = write(cfd,write_content,writeLen)))
         {       
-                printf("write fail!\r\n");
+                // cout << "errno:" << errno << "\n";
+		printf("write fail!\r\n");
 		return 0;
         }
-	fout << bufferWrite << endl;
 	return 1;
 }
 
