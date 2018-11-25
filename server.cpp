@@ -96,8 +96,8 @@ void ClientWorkPlace(int clientsock, int isBlock)
 		char buffer[recvBufferSize], MyTime[30];
 		int ret;
 		char SnoBuffer[10];
-		unsigned int MySnoInt;
-		unsigned int MyPidInt;
+		int MySnoInt;
+		int MyPidInt;
 		char PidBuffer[10];
 		int cRand;
 		switch (myClient.getStatus())
@@ -107,7 +107,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			myClient.setStatus(recvStnoSta);
 		case recvStnoSta:
 			ret = myClient.recvC(buffer);
-			if (ret <= 0)
+			if (ret < 0)
 			{
 				printf("recv error\n");
 				myClient.setStatus(errorSta);
@@ -123,12 +123,12 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			}
 			else
 			{
-				MySnoInt = ntohl((*(unsigned int *)buffer));
-				sprintf(SnoBuffer, "%u", MySnoInt);
+				MySnoInt = ntohl((*(int *)buffer));
+				sprintf(SnoBuffer, "%d", MySnoInt);
 				myClient.setClientStuNo(SnoBuffer);
 				myClient.setStatus(sendPidSta);
 			}
-			printf("Sno:\t%u\n",MySnoInt);
+			printf("Sno:\t%d\n",MySnoInt);
 			if (myClient.getRequiredSize() > 0)
 				break;
 		case sendPidSta:
@@ -142,7 +142,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			break;
 		case recvPidSta:
 			ret = myClient.recvC(buffer);
-			if (ret <= 0)
+			if (ret < 0)
 			{
 				printf("recv Pid Error\n");
 				myClient.setStatus(errorSta);
@@ -158,12 +158,12 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			}
 			else
 			{
-				MyPidInt = ntohl((*(unsigned int *)buffer));
-				sprintf(PidBuffer, "%u", MyPidInt);
+				MyPidInt = ntohl((*(int *)buffer));
+				sprintf(PidBuffer, "%d", MyPidInt);
 				myClient.setClientPid(PidBuffer);
 				myClient.setStatus(sendTimeSta);
 			}
-			printf("%d pid %u\n",getpid(),MyPidInt);
+			printf("%d pid %d\n",getpid(),MyPidInt);
 			if (myClient.getRequiredSize() > 0)
 				break;
 		case sendTimeSta:
@@ -178,7 +178,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			break;
 		case recvTimeSta:
 			ret = myClient.recvC(buffer);
-			if (ret <= 0)
+			if (ret < 0)
 			{
 				printf("recv timeError\n");
 				myClient.setStatus(errorSta);
@@ -220,7 +220,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			break;
 		case recvRandSta: 
 			ret = myClient.recvC(buffer);
-			if (ret <= 0)
+			if (ret < 0)
 			{
 				printf("rand recv error\n");
 				myClient.setStatus(errorSta);
@@ -247,7 +247,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			}
 			break;
 		case waitEnd:
-			if ((ret=myClient.recvC(buffer)) == 0)
+			if ((ret=myClient.recvC(buffer)) <= 0)
 			{
 				myClient.closeC();
 				return;
@@ -355,8 +355,8 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 				char buffer[recvBufferSize];
 				char MyTime[30];
 				char SnoBuffer[10];
-				unsigned int MySnoInt;
-				unsigned int MyPidInt;
+				int MySnoInt;
+				int MyPidInt;
 				char PidBuffer[10];
 				int cRand;
 				while (1)
@@ -369,7 +369,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						continue;
 					case recvStnoSta: //收4字节网络序学号，发“pid”
 						ret = myClients[i].recvC(buffer);
-						if (ret <= 0)
+						if (ret < 0)
 						{
 							myClients[i].setStatus(errorSta);
 							break;
@@ -383,8 +383,8 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						}
 						else
 						{
-							MySnoInt = ntohl((*(unsigned int *)buffer));
-							sprintf(SnoBuffer, "%u", MySnoInt);
+							MySnoInt = ntohl((*(int *)buffer));
+							sprintf(SnoBuffer, "%d", MySnoInt);
 							myClients[i].setClientStuNo(SnoBuffer);
 							myClients[i].setStatus(sendPidSta);
 							continue;
@@ -401,7 +401,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						continue;
 					case recvPidSta: //收4字节网络序int pid，发TIME
 						ret = myClients[i].recvC(buffer);
-						if (ret <= 0)
+						if (ret < 0)
 						{
 							myClients[i].setStatus(errorSta);
 							break;
@@ -415,8 +415,8 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						}
 						else
 						{
-							MyPidInt = ntohl((*(unsigned int *)buffer));
-							sprintf(PidBuffer, "%u", MyPidInt);
+							MyPidInt = ntohl((*(int *)buffer));
+							sprintf(PidBuffer, "%d", MyPidInt);
 							myClients[i].setClientPid(PidBuffer);
 							myClients[i].setStatus(sendTimeSta);
 							continue;
@@ -434,7 +434,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						continue;
 					case recvTimeSta: //收19字节时间字符串，发str+五位随机数
 						ret = myClients[i].recvC(buffer);
-						if (ret <= 0)
+						if (ret < 0)
 						{
 							myClients[i].setStatus(errorSta);
 							break;
@@ -474,7 +474,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						continue;
 					case recvRandSta: //收5位数的随机数个数据，然后发end
 						ret = myClients[i].recvC(buffer);
-						if (ret <= 0)
+						if (ret < 0)
 						{
 							myClients[i].setStatus(errorSta);
 							break;
@@ -507,7 +507,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						}
 						break;
 					case waitEnd:
-						if (myClients[i].recvC(buffer) ==0)
+						if (myClients[i].recvC(buffer) <=0)
 						{
 							myClients[i].closeC();
 							FD_CLR(i, &readfds);
