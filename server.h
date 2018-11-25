@@ -1,6 +1,7 @@
-#ifndef SERVER_H
-#define SERVER_H
-
+#ifndef SERVER_1652335
+#define SERVER_1652335
+#include "utils.h"
+#include "clientModel.h"
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -10,10 +11,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <signal.h>
-
-#include "utils.h"
-
 #define MAXPENDING 1023    /* Max connection requests */
 #define MAXCLIENT 1023
+#endif
 
-#endif // SERVER_H

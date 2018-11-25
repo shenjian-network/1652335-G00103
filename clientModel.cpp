@@ -11,6 +11,7 @@ void ClientModel::init(int socket, bool IsBlock)
     requiredSize = 0;
     t = time(0);
     myStatus=sendStnoSta;
+    toStatus=Sidle;
 }
 
 void ClientModel::setRequiredSize(int size)
@@ -18,7 +19,7 @@ void ClientModel::setRequiredSize(int size)
     requiredSize = size;
 }
 
-void ClientModel::setClientStuNo(char *stuNo)
+void ClientModel::setClientStuNo(const char *stuNo)
 {
     strcpy(clientStuNo, stuNo);
 }
@@ -72,28 +73,11 @@ int ClientModel::sendC(int size,const char *buffer) //必须发送完足够的字节之后才
 int ClientModel::recvC(char *buffer) //非阻塞接受的情况下，考虑未收完，收到内容超过要求值的情况 阻塞情况也要考虑未收完的情况，和收过多的情况 同时考虑对端断开的情况 每次接受更新时间戳
 {
     int befSize=requiredSize;
-    while (requiredSize >= 0) //剩余部分大于0
+    while (requiredSize > 0) //
     {
         int RecvSize;
         if (isBlock)
         {
-            /*该部分做阻塞超时的特殊处理*/
-            int selectRet;
-            fd_set rfd; // 描述符集 这个将用来测试有没有一个可用的连接
-            struct timeval timeout;
-            FD_ZERO(&rfd);       //总是这样先清空一个描述符集
-            timeout.tv_sec = recvTle; //等下select用到这个
-            timeout.tv_usec = 0;
-            FD_SET(mySocket,&rfd); 
-            if((selectRet=select(mySocket+1,&rfd,NULL,NULL, &timeout))==0)
-            {
-                return -1;
-            } 
-            else if(selectRet<0)
-            {
-                if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN))//该部分不确定是否正确，但一般情况不会返回负数
-                    continue;               
-            }
             RecvSize = recv(mySocket, buffer, recvBufferSize, 0);
         }
         else
@@ -135,7 +119,7 @@ void ClientModel::closeC()
 bool ClientModel::writeFileHead()
 {
     setFileName();
-    char buffer[50];
+    char buffer[100];
     int writeSize;
     FILE* myClientFile;
     myClientFile=fopen(fileName,"w+");
@@ -225,10 +209,20 @@ ClientModel::ClientModel()
     requiredSize = 0;
     t = time(0);
     myStatus=sendStnoSta;
+    toStatus=Sidle;
 }
 
 int ClientModel::getRequiredSize()
 {
     return requiredSize;
+}
+
+void ClientModel::setToStatus(ToServerStatus sta)
+{
+    toStatus=sta;
+}
+ToServerStatus ClientModel::getToStatus()
+{
+    return toStatus;
 }
 

@@ -27,7 +27,7 @@ void init_deamon(void)
         exit(0);
     else if(pid< 0)
         exit(1);
-    chdir("./");
+    chdir("./txt/");
     umask(0);
     return;
 }
@@ -46,7 +46,7 @@ void tip(bool isServer)
     if (!isServer)
     {
         printf("\t--num\t建立连接的个数(client)\n");
-        printf("\t示例: ./test --ip 192.168.6.1 --port 8080 --block --fork --num 13\n");
+        printf("\t示例: ./test --ip 192.168.6.1 --port 8080 --block --fork --num\n");
     }
     else
         printf("\t示例: ./test --ip 192.168.6.1 --port 8080 --block --fork\n");

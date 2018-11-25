@@ -1,5 +1,4 @@
 #include "server.h"
-#include "clientModel.h"
 
 
 /*函数：设置sock为non-blocking mode*/
@@ -51,7 +50,6 @@ int initSocket(optType &myOptType)
 
 void ClientWorkPlace(int clientsock, int isBlock)
 {
-	signal(SIGPIPE, SIG_IGN);
 	fd_set readfds, readfdsbak;
 	struct timeval timeout;
 	timeout.tv_sec = recvTle; //等下select用到这个
@@ -74,7 +72,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 		{
 			int ret;
 			readfdsbak = readfds;
-			if ((ret = select(clientsock + 1, &readfdsbak, NULL, NULL, &timeout)) < 0) //超时处理
+			if ((ret = select(clientsock + 1, &readfdsbak, NULL, NULL, NULL)) < 0) //超时不处理（1000个很慢）
 			{
 				if ((errno == EINTR || errno == EWOULDBLOCK || errno == EAGAIN))
 					continue;
@@ -89,10 +87,10 @@ void ClientWorkPlace(int clientsock, int isBlock)
 		}
 		char buffer[recvBufferSize], MyTime[30];
 		int ret;
-		char SnoBuffer[10];
+		char SnoBuffer[30];
 		int MySnoInt;
 		int MyPidInt;
-		char PidBuffer[10];
+		char PidBuffer[30];
 		int cRand;
 		switch (myClient.getStatus())
 		{
@@ -100,7 +98,9 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			myClient.setRequiredSize(4);
 			myClient.setStatus(recvStnoSta);
 		case recvStnoSta:
+			//printf("1\n");
 			ret = myClient.recvC(buffer);
+			//printf("2\n");
 			if (ret < 0)
 			{
 				printf("recv error\n");
@@ -122,7 +122,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 				myClient.setClientStuNo(SnoBuffer);
 				myClient.setStatus(sendPidSta);
 			}
-			printf("Sno:\t%d\n",MySnoInt);
+			//printf("Sno:\t%d\n",MySnoInt);
 			if (myClient.getRequiredSize() > 0)
 				break;
 		case sendPidSta:
@@ -157,7 +157,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 				myClient.setClientPid(PidBuffer);
 				myClient.setStatus(sendTimeSta);
 			}
-			printf("%d pid %d\n",getpid(),MyPidInt);
+			// printf("%d pid %d\n",getpid(),MyPidInt);
 			if (myClient.getRequiredSize() > 0)
 				break;
 		case sendTimeSta:
@@ -168,7 +168,7 @@ void ClientWorkPlace(int clientsock, int isBlock)
 				printf("sendError\n");
 				myClient.setStatus(errorSta);
 			}
-			strcpy(MyTime, "");
+			//strcpy(MyTime, "");
 			break;
 		case recvTimeSta:
 			ret = myClient.recvC(buffer);
@@ -189,11 +189,11 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			}
 			else
 			{
-				strcat(MyTime, buffer);
+				strcpy(MyTime, buffer);
 				myClient.setClientTime(MyTime);
 				myClient.setStatus(sendRandSta);
 			}
-			printf("%s\n",MyTime);
+			// printf("%s\n",MyTime);
 			if (myClient.getRequiredSize() > 0)
 				break;
 		case sendRandSta:
@@ -248,13 +248,13 @@ void ClientWorkPlace(int clientsock, int isBlock)
 			}
 			else
 			{
+				//printf();
 				myClient.setStatus(errorSta);
 			}
 			break;
 		default:
 			break;
 		}
-		printf("all ok\n");
 		if (myClient.getStatus() == errorSta)
 		{
 			printf("file removed\n");
@@ -281,8 +281,6 @@ void HandleClientForkMode(int serversock, int isBlock)
 			ClientWorkPlace(clientsock, isBlock);
 			exit(0);
 		}
-		else if (child_pid > 0)
-			close(clientsock);
 	}
 }
 
@@ -312,15 +310,16 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 		{
 			if (!FD_ISSET(i, &readfdsbak)) //留待时间检查处理
 			{
-				if (FD_ISSET(i, &readfds) && i != serversock)
-				{
-					if (!myClients[i].judgeTLE())
-					{
-						myClients[i].removeFile();
-						myClients[i].closeC();
-						FD_CLR(i, &readfds);
-					}
-				}
+				//if (FD_ISSET(i, &readfds) && i != serversock)
+				//{
+				//	if (!myClients[i].judgeTLE())
+				//	{
+				//		printf("TLE\n");
+				//		myClients[i].removeFile();
+				//		myClients[i].closeC();
+				//		FD_CLR(i, &readfds);
+			//		}
+			//	}
 				continue;
 			}
 			if (i == serversock)
@@ -365,6 +364,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						ret = myClients[i].recvC(buffer);
 						if (ret < 0)
 						{
+							printf("recv\n");
 							myClients[i].setStatus(errorSta);
 							break;
 						}
@@ -377,6 +377,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						}
 						else
 						{
+							// printf("success\n");
 							MySnoInt = ntohl((*(int *)buffer));
 							sprintf(SnoBuffer, "%d", MySnoInt);
 							myClients[i].setClientStuNo(SnoBuffer);
@@ -385,6 +386,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						}
 						break;
 					case sendPidSta:
+						// printf("send\n");
 						myClients[i].setRequiredSize(4);
 						myClients[i].setStatus(recvPidSta);
 						if (myClients[i].sendC(strlen("pid"), "pid") < 0)
@@ -427,13 +429,14 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						strcpy(MyTime, "");
 						continue;
 					case recvTimeSta: //收19字节时间字符串，发str+五位随机数
-						ret = myClients[i].recvC(buffer);
+						ret = myClients[i].recvC(buffer);//!!!!!!!!!!!!!!!!!!!
 						if (ret < 0)
 						{
 							myClients[i].setStatus(errorSta);
 							break;
 						}
 						buffer[ret] = 0;
+
 						if (myClients[i].getRequiredSize() > 0) //时间检查处理
 						{
 							if (((myClients[i].getRequiredSize() != 19)))
@@ -443,7 +446,7 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						}
 						else
 						{
-							strcat(MyTime, buffer);
+							strcpy(MyTime, buffer);
 							myClients[i].setClientTime(MyTime);
 							myClients[i].setStatus(sendRandSta);
 							continue;
@@ -472,14 +475,6 @@ void HandleClientNoForkMode(int serversock, int isBlock)
 						{
 							myClients[i].setStatus(errorSta);
 							break;
-						}
-						if (myClients[i].getRequiredSize() > 0) //时间检查处理
-						{
-							if (!myClients[i].judgeTLE())
-							{
-								myClients[i].setStatus(errorSta);
-								break;
-							}
 						}
 						if (!myClients[i].writeAppend(buffer, ret))
 						{

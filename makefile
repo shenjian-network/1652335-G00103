@@ -1,10 +1,12 @@
 CC=g++
-Target = client
+Target = server client 
 .PHONY: all clean 
-HEADFILE= utils.h
-INCLUDEFILE= utils.cpp
-all:$(Target)
+HEADFILE= server.h utils.h clientModel.h client.h
+INCLUDEFILE= utils.cpp clientModel.cpp
+all:$(Target) create
 $(Target):%:%.cpp $(HEADFILE) $(INCLUDEFILE)
 	$(CC) -o $@ $< $(HEADFILE) $(INCLUDEFILE)
 clean:
-	-rm -rf $(Target) *.txt
+	-rm -rf $(Target) txt/* txt
+create:
+	mkdir txt

@@ -13,5 +13,8 @@
 #include <iostream>
 #include <fstream>
 #include "utils.h"
+#include "clientModel.h"
+
+#define MAXCLIENT 2000
 
 #endif // CLIENT_1652235
